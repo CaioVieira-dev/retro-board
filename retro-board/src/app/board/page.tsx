@@ -4,7 +4,7 @@ import Board from "./board";
 export default async function Page() {
   return (
     <HydrateClient>
-      <Board />;
+      <Board />
     </HydrateClient>
   );
 }
