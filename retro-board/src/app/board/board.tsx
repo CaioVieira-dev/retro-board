@@ -15,7 +15,11 @@ export default function Board() {
             <Column title={column} key={column}>
               <>
                 {messages.map((message, index) => (
-                  <Card message={message} key={`${message}=${index}`} />
+                  <Card
+                    message={message}
+                    title={column}
+                    key={`${message}=${index}`}
+                  />
                 ))}
               </>
             </Column>
@@ -66,11 +70,24 @@ function Column({
   );
 }
 
-function Card({ message }: { message: string }) {
+function Card({ message, title }: { message: string; title: string }) {
+  const utils = api.useUtils();
+  const { mutate } = api.board.removeMessage.useMutation({
+    async onSuccess() {
+      await utils.invalidate();
+    },
+  });
+
+  const removeMessage = useCallback(() => {
+    mutate({ column: title, message });
+  }, [message, mutate, title]);
+
   return (
     <div className="flex items-start justify-between bg-[#AAA3D4] px-4 py-2">
       <span className="">{message}</span>
-      <button className="text-[#AE214E]">X</button>
+      <button className="text-[#AE214E]" onClick={() => removeMessage()}>
+        X
+      </button>
     </div>
   );
 }

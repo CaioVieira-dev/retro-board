@@ -28,6 +28,23 @@ export const boardRouter = createTRPCRouter({
       }
       return board;
     }),
+  removeMessage: publicProcedure
+    .input(
+      z.object({
+        message: z.string(),
+        column: z.string(),
+      }),
+    )
+    .mutation(({ input }) => {
+      const { column, message } = input;
+
+      if (board.has(column)) {
+        const oldMessages = board.get(column) ?? [];
+        const newMessages = oldMessages.filter((val) => val !== message);
+        board.set(column, newMessages);
+      }
+      return board;
+    }),
   getBoard: publicProcedure.query(() => {
     return Object.fromEntries(board.entries());
   }),
