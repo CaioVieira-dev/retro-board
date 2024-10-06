@@ -31,13 +31,13 @@ export const posts = createTable(
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-      () => new Date()
+      () => new Date(),
     ),
   },
   (example) => ({
     createdByIdIdx: index("created_by_idx").on(example.createdById),
     nameIndex: index("name_idx").on(example.name),
-  })
+  }),
 );
 
 export const users = createTable("user", {
@@ -84,7 +84,7 @@ export const accounts = createTable(
       columns: [account.provider, account.providerAccountId],
     }),
     userIdIdx: index("account_user_id_idx").on(account.userId),
-  })
+  }),
 );
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -107,7 +107,7 @@ export const sessions = createTable(
   },
   (session) => ({
     userIdIdx: index("session_user_id_idx").on(session.userId),
-  })
+  }),
 );
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
@@ -126,5 +126,57 @@ export const verificationTokens = createTable(
   },
   (vt) => ({
     compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
-  })
+  }),
 );
+
+export const boards = createTable("boards", {
+  id: varchar("id", { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+});
+
+export const boardColumns = createTable("board_columns", {
+  id: varchar("id", { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: varchar("identifier", { length: 255 }).notNull(),
+  boardId: varchar("boardId", { length: 255 }).notNull(),
+});
+
+export const cards = createTable("cards", {
+  id: varchar("id", { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  content: text("content"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  boardColumnId: varchar("boardId", { length: 255 }).notNull(),
+});
+
+export const boardsRelations = relations(boards, ({ many }) => ({
+  board_columns: many(boardColumns),
+}));
+
+export const boardColumnsRelations = relations(
+  boardColumns,
+  ({ many, one }) => ({
+    board: one(boards, {
+      fields: [boardColumns.boardId],
+      references: [boards.id],
+    }),
+    cards: many(cards),
+  }),
+);
+export const cardsRelations = relations(cards, ({ one }) => ({
+  boardColumn: one(boardColumns, {
+    fields: [cards.boardColumnId],
+    references: [boardColumns.id],
+  }),
+}));
