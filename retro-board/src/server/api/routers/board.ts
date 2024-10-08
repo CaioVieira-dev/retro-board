@@ -1,6 +1,12 @@
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "~/server/api/trpc";
+import { boards, boardColumns, cards } from "~/server/db/schema";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const boardSchema = z.map(z.string(), z.array(z.string()));
@@ -47,5 +53,32 @@ export const boardRouter = createTRPCRouter({
     }),
   getBoard: publicProcedure.query(() => {
     return Object.fromEntries(board.entries());
+  }),
+
+  getLatestBoardFromDb: publicProcedure.query(async ({ ctx }) => {
+    const board = await ctx.db.query.boards.findFirst({
+      orderBy: (posts, { desc }) => [desc(posts.createdAt)],
+    });
+
+    return board ?? null;
+  }),
+
+  createBoard: protectedProcedure.mutation(async ({ ctx }) => {
+    const [resultado] = await ctx.db
+      .insert(boards)
+      .values({})
+      .returning({ id: boards.id });
+
+    if (!resultado) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message:
+          "An unexpected error occurred, while creating the board please try again later.",
+        // optional: pass the original error to retain stack trace
+        // cause: theError,
+      });
+    }
+
+    return resultado.id;
   }),
 });
