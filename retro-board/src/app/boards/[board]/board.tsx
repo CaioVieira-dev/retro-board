@@ -8,24 +8,22 @@ export default function Board() {
   console.log(board);
 
   return (
-    <main className="flex min-h-screen items-start justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c]">
-      <section className="container flex items-start justify-center gap-4 px-4 py-12 text-white">
-        {board &&
-          Object.entries(board).map(([column, messages]) => (
-            <Column title={column} key={column}>
-              <>
-                {messages.map((message, index) => (
-                  <Card
-                    message={message}
-                    title={column}
-                    key={`${message}=${index}`}
-                  />
-                ))}
-              </>
-            </Column>
-          ))}
-      </section>
-    </main>
+    <>
+      {board &&
+        Object.entries(board).map(([column, messages]) => (
+          <Column title={column} key={column}>
+            <>
+              {messages.map((message, index) => (
+                <Card
+                  message={message}
+                  title={column}
+                  key={`${message}=${index}`}
+                />
+              ))}
+            </>
+          </Column>
+        ))}
+    </>
   );
 }
 
