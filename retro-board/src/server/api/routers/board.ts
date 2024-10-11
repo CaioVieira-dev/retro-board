@@ -1,5 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import { eq, type InferSelectModel } from "drizzle-orm";
+import { unknown, z } from "zod";
 
 import {
   createTRPCRouter,
@@ -16,6 +17,8 @@ const board: boardType = new Map([
   ["Parar", []],
   ["Continuar", []],
 ]);
+
+const DEFAULT_BOARD_COLUMN_NAMES = ["Dúvidas", "Parar", "Continuar"];
 
 export const boardRouter = createTRPCRouter({
   addMessage: publicProcedure
@@ -55,6 +58,59 @@ export const boardRouter = createTRPCRouter({
     return Object.fromEntries(board.entries());
   }),
 
+  getBoardFromDb: publicProcedure
+    .input(z.object({ boardId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const { boardId } = input;
+      const rows = await ctx.db
+        .select()
+        .from(boards)
+        .where(eq(boards.id, boardId))
+        .leftJoin(boardColumns, eq(boards.id, boardColumns.boardId))
+        .leftJoin(cards, eq(boardColumns.id, cards.boardColumnId));
+
+      type cardsType = InferSelectModel<typeof cards>;
+      type boardColumnsTypes = InferSelectModel<typeof boardColumns>;
+      type boardsType = InferSelectModel<typeof boards>;
+      type resultType = Record<
+        string,
+        boardsType & {
+          columns: Record<string, boardColumnsTypes & { cards: cardsType[] }>;
+        }
+      >;
+      const result: resultType = {};
+
+      for (const { board_columns, boards, cards } of rows) {
+        if (boards?.id && !result?.[boards?.id]) {
+          result[boards.id] = {
+            ...boards,
+            columns: {},
+          };
+        }
+
+        const board = result[boards.id];
+
+        if (
+          board &&
+          board_columns?.id &&
+          !board?.columns?.[board_columns?.id]
+        ) {
+          board.columns[board_columns?.id] = {
+            ...board_columns,
+            cards: [],
+          };
+        }
+
+        const column = board?.columns?.[board_columns?.id ?? ""];
+
+        if (column?.cards && cards) {
+          column.cards.push(cards);
+        }
+      }
+
+      return result;
+    }),
+
   getLatestBoardFromDb: publicProcedure.query(async ({ ctx }) => {
     const board = await ctx.db.query.boards.findFirst({
       orderBy: (posts, { desc }) => [desc(posts.createdAt)],
@@ -64,12 +120,12 @@ export const boardRouter = createTRPCRouter({
   }),
 
   createBoard: protectedProcedure.mutation(async ({ ctx }) => {
-    const [resultado] = await ctx.db
+    const [board] = await ctx.db
       .insert(boards)
       .values({})
       .returning({ id: boards.id });
 
-    if (!resultado) {
+    if (!board) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message:
@@ -79,6 +135,13 @@ export const boardRouter = createTRPCRouter({
       });
     }
 
-    return resultado.id;
+    await ctx.db.insert(boardColumns).values(
+      DEFAULT_BOARD_COLUMN_NAMES.map((colName) => ({
+        boardId: board.id,
+        name: colName,
+      })),
+    );
+
+    return board.id;
   }),
 });

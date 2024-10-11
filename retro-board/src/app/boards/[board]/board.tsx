@@ -3,26 +3,29 @@
 import { useCallback, useState } from "react";
 import { api } from "~/trpc/react";
 
-export default function Board() {
-  const [board] = api.board.getBoard.useSuspenseQuery();
+export default function Board({ board }: { board: string }) {
+  // const [old_board] = api.board.getBoard.useSuspenseQuery();
+  const [boardFromDb] = api.board.getBoardFromDb.useSuspenseQuery({
+    boardId: board,
+  });
+
   console.log(board);
+  console.log("boardFromDb", boardFromDb);
 
   return (
     <>
-      {board &&
-        Object.entries(board).map(([column, messages]) => (
-          <Column title={column} key={column}>
-            <>
-              {messages.map((message, index) => (
-                <Card
-                  message={message}
-                  title={column}
-                  key={`${message}=${index}`}
-                />
-              ))}
-            </>
-          </Column>
-        ))}
+      {boardFromDb &&
+        Object.values(boardFromDb).map(({ columns }) =>
+          Object.values(columns).map(({ cards, name, id }) => (
+            <Column title={name} key={id}>
+              <>
+                {cards.map(({ content, id }) => (
+                  <Card message={content} title={name} key={id} />
+                ))}
+              </>
+            </Column>
+          )),
+        )}
     </>
   );
 }

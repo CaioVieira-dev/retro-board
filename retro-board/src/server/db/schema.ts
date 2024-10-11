@@ -153,7 +153,7 @@ export const cards = createTable("cards", {
     .notNull()
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  content: text("content"),
+  content: text("content").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
