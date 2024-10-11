@@ -9,36 +9,10 @@ import {
 } from "~/server/api/trpc";
 import { boards, boardColumns, cards } from "~/server/db/schema";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const boardSchema = z.map(z.string(), z.array(z.string()));
-type boardType = z.infer<typeof boardSchema>;
-const board: boardType = new Map([
-  ["Dúvidas", []],
-  ["Parar", []],
-  ["Continuar", []],
-]);
-
 const DEFAULT_BOARD_COLUMN_NAMES = ["Dúvidas", "Parar", "Continuar"];
 
 export const boardRouter = createTRPCRouter({
   addMessage: publicProcedure
-    .input(
-      z.object({
-        message: z.string(),
-        column: z.string(),
-      }),
-    )
-    .mutation(({ input }) => {
-      const { column, message } = input;
-
-      if (board.has(column)) {
-        const oldMessages = board.get(column);
-        board.set(column, [...(oldMessages ?? []), message]);
-      }
-      return board;
-    }),
-
-  addMessageToDb: publicProcedure
     .input(
       z.object({
         message: z.string(),
@@ -66,24 +40,6 @@ export const boardRouter = createTRPCRouter({
   removeMessage: publicProcedure
     .input(
       z.object({
-        message: z.string(),
-        column: z.string(),
-      }),
-    )
-    .mutation(({ input }) => {
-      const { column, message } = input;
-
-      if (board.has(column)) {
-        const oldMessages = board.get(column) ?? [];
-        const newMessages = oldMessages.filter((val) => val !== message);
-        board.set(column, newMessages);
-      }
-      return board;
-    }),
-
-  removeMessageFromDb: publicProcedure
-    .input(
-      z.object({
         card: z.string(),
       }),
     )
@@ -100,15 +56,9 @@ export const boardRouter = createTRPCRouter({
       }
 
       await ctx.db.delete(cards).where(eq(cards.id, card));
-
-      return board;
     }),
 
-  getBoard: publicProcedure.query(() => {
-    return Object.fromEntries(board.entries());
-  }),
-
-  getBoardFromDb: publicProcedure
+  getBoard: publicProcedure
     .input(z.object({ boardId: z.string() }))
     .query(async ({ input, ctx }) => {
       const { boardId } = input;
@@ -160,14 +110,6 @@ export const boardRouter = createTRPCRouter({
 
       return result;
     }),
-
-  getLatestBoardFromDb: publicProcedure.query(async ({ ctx }) => {
-    const board = await ctx.db.query.boards.findFirst({
-      orderBy: (posts, { desc }) => [desc(posts.createdAt)],
-    });
-
-    return board ?? null;
-  }),
 
   createBoard: protectedProcedure.mutation(async ({ ctx }) => {
     const [board] = await ctx.db

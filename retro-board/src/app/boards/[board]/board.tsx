@@ -4,13 +4,9 @@ import { useCallback, useState } from "react";
 import { api } from "~/trpc/react";
 
 export default function Board({ board }: { board: string }) {
-  // const [old_board] = api.board.getBoard.useSuspenseQuery();
-  const [boardFromDb] = api.board.getBoardFromDb.useSuspenseQuery({
+  const [boardFromDb] = api.board.getBoard.useSuspenseQuery({
     boardId: board,
   });
-
-  console.log(board);
-  console.log("boardFromDb", boardFromDb);
 
   return (
     <>
@@ -41,7 +37,7 @@ function Column({
 }) {
   const [message, setMessage] = useState("");
   const utils = api.useUtils();
-  const { mutate } = api.board.addMessageToDb.useMutation({
+  const { mutate } = api.board.addMessage.useMutation({
     async onSuccess() {
       await utils.invalidate();
     },
@@ -75,7 +71,7 @@ function Column({
 
 function Card({ message, cardId }: { message: string; cardId: string }) {
   const utils = api.useUtils();
-  const { mutate } = api.board.removeMessageFromDb.useMutation({
+  const { mutate } = api.board.removeMessage.useMutation({
     async onSuccess() {
       await utils.invalidate();
     },
