@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { eq, type InferSelectModel } from "drizzle-orm";
-import { unknown, z } from "zod";
+import { z } from "zod";
 
 import {
   createTRPCRouter,
@@ -37,6 +37,32 @@ export const boardRouter = createTRPCRouter({
       }
       return board;
     }),
+
+  addMessageToDb: publicProcedure
+    .input(
+      z.object({
+        message: z.string(),
+        column: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { column, message } = input;
+
+      if (!column) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Provide a column next time",
+          // optional: pass the original error to retain stack trace
+          // cause: theError,
+        });
+      }
+
+      await ctx.db.insert(cards).values({
+        boardColumnId: column,
+        content: message,
+      });
+    }),
+
   removeMessage: publicProcedure
     .input(
       z.object({
@@ -54,6 +80,30 @@ export const boardRouter = createTRPCRouter({
       }
       return board;
     }),
+
+  removeMessageFromDb: publicProcedure
+    .input(
+      z.object({
+        card: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { card } = input;
+
+      if (!card) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Provide a card next time",
+          // optional: pass the original error to retain stack trace
+          // cause: theError,
+        });
+      }
+
+      await ctx.db.delete(cards).where(eq(cards.id, card));
+
+      return board;
+    }),
+
   getBoard: publicProcedure.query(() => {
     return Object.fromEntries(board.entries());
   }),

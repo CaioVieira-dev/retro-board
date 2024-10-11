@@ -17,10 +17,10 @@ export default function Board({ board }: { board: string }) {
       {boardFromDb &&
         Object.values(boardFromDb).map(({ columns }) =>
           Object.values(columns).map(({ cards, name, id }) => (
-            <Column title={name} key={id}>
+            <Column title={name} key={id} columnId={id}>
               <>
                 {cards.map(({ content, id }) => (
-                  <Card message={content} title={name} key={id} />
+                  <Card message={content} cardId={id} key={id} />
                 ))}
               </>
             </Column>
@@ -33,22 +33,24 @@ export default function Board({ board }: { board: string }) {
 function Column({
   title,
   children,
+  columnId,
 }: {
   title: string;
+  columnId: string;
   children: React.ReactNode;
 }) {
   const [message, setMessage] = useState("");
   const utils = api.useUtils();
-  const { mutate } = api.board.addMessage.useMutation({
+  const { mutate } = api.board.addMessageToDb.useMutation({
     async onSuccess() {
       await utils.invalidate();
     },
   });
 
   const addMessage = useCallback(() => {
-    mutate({ column: title, message });
+    mutate({ column: columnId, message });
     setMessage("");
-  }, [message, mutate, title]);
+  }, [columnId, message, mutate]);
 
   return (
     <div className="flex w-2/6 min-w-48 flex-col gap-4 rounded bg-[#7139DA] px-2 py-4">
@@ -71,17 +73,17 @@ function Column({
   );
 }
 
-function Card({ message, title }: { message: string; title: string }) {
+function Card({ message, cardId }: { message: string; cardId: string }) {
   const utils = api.useUtils();
-  const { mutate } = api.board.removeMessage.useMutation({
+  const { mutate } = api.board.removeMessageFromDb.useMutation({
     async onSuccess() {
       await utils.invalidate();
     },
   });
 
   const removeMessage = useCallback(() => {
-    mutate({ column: title, message });
-  }, [message, mutate, title]);
+    mutate({ card: cardId });
+  }, [cardId, mutate]);
 
   return (
     <div className="flex items-start justify-between bg-[#AAA3D4] px-4 py-2">
