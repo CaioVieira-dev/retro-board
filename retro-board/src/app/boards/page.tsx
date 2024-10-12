@@ -26,7 +26,7 @@ export default function Page() {
   }, [board, mutate, router]);
 
   return (
-    <div className="flex w-2/6 min-w-48 flex-col gap-4 rounded bg-[#7139DA] p-4 text-white">
+    <div className="flex w-2/6 min-w-48 flex-col gap-4 self-center rounded bg-[#7139DA] p-4 text-white">
       {error && (
         <div className="">
           Aconteceu um erro :( <div className="">{error}</div>
