@@ -137,6 +137,7 @@ export const boards = createTable("boards", {
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
+  name: text("name"),
 });
 
 export const boardColumns = createTable("board_columns", {

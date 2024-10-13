@@ -22,7 +22,7 @@ export default function Page() {
       return router.push(`/boards/${board}`);
     }
 
-    return mutate();
+    return mutate({});
   }, [board, mutate, router]);
 
   return (

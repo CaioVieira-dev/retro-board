@@ -62,6 +62,7 @@ export const boardRouter = createTRPCRouter({
     .input(z.object({ boardId: z.string() }))
     .query(async ({ input, ctx }) => {
       const { boardId } = input;
+
       const rows = await ctx.db
         .select()
         .from(boards)
@@ -111,29 +112,58 @@ export const boardRouter = createTRPCRouter({
       return result;
     }),
 
-  createBoard: protectedProcedure.mutation(async ({ ctx }) => {
-    const [board] = await ctx.db
-      .insert(boards)
-      .values({})
-      .returning({ id: boards.id });
+  updateBoardName: publicProcedure
+    .input(
+      z.object({
+        boardId: z.string(),
+        name: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { boardId, name } = input;
 
-    if (!board) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message:
-          "An unexpected error occurred, while creating the board please try again later.",
-        // optional: pass the original error to retain stack trace
-        // cause: theError,
-      });
-    }
+      if (!boardId || !name) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Insuficient argumens. Are you sure the request is ok?",
+          // optional: pass the original error to retain stack trace
+          // cause: theError,
+        });
+      }
 
-    await ctx.db.insert(boardColumns).values(
-      DEFAULT_BOARD_COLUMN_NAMES.map((colName) => ({
-        boardId: board.id,
-        name: colName,
-      })),
-    );
+      await ctx.db.update(boards).set({ name }).where(eq(boards.id, boardId));
+    }),
 
-    return board.id;
-  }),
+  createBoard: protectedProcedure
+    .input(z.object({ name: z.string().optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const { name } = input;
+      const newBoard: { name?: string } = {};
+      if (name) {
+        newBoard.name = name;
+      }
+      const [board] = await ctx.db
+        .insert(boards)
+        .values(newBoard)
+        .returning({ id: boards.id });
+
+      if (!board) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "An unexpected error occurred, while creating the board please try again later.",
+          // optional: pass the original error to retain stack trace
+          // cause: theError,
+        });
+      }
+
+      await ctx.db.insert(boardColumns).values(
+        DEFAULT_BOARD_COLUMN_NAMES.map((colName) => ({
+          boardId: board.id,
+          name: colName,
+        })),
+      );
+
+      return board.id;
+    }),
 });
