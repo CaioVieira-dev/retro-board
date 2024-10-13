@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { Button } from "~/components/ui/button";
 import { api } from "~/trpc/react";
+import { MdOutlineDelete } from "react-icons/md";
 
 export default function Board({ board }: { board: string }) {
   const [boardFromDb] = api.board.getBoard.useSuspenseQuery({
@@ -58,12 +60,13 @@ function Column({
         onChange={(e) => setMessage(e.target.value)}
         className="rounded bg-[#AAA3D4] px-4 py-2"
       />
-      <button
+      <Button
         onClick={() => addMessage()}
-        className="rounded bg-[#3018B9] px-4 py-2"
+        className="rounded bg-[#3018B9] px-4 py-2 hover:bg-[#180c5f]"
+        variant="default"
       >
         Add message
-      </button>
+      </Button>
       {children}
     </div>
   );
@@ -83,10 +86,14 @@ function Card({ message, cardId }: { message: string; cardId: string }) {
 
   return (
     <div className="flex items-start justify-between bg-[#AAA3D4] px-4 py-2">
-      <span className="">{message}</span>
-      <button className="text-[#AE214E]" onClick={() => removeMessage()}>
-        X
-      </button>
+      <span className="py-2">{message}</span>
+      <Button
+        className="bg-transparent text-[#AE214E] transition-colors hover:text-white"
+        variant="destructive"
+        onClick={() => removeMessage()}
+      >
+        <MdOutlineDelete />
+      </Button>
     </div>
   );
 }

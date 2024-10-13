@@ -94,7 +94,10 @@ function NameAndCopy({ boardId }: { boardId: string }) {
         {board?.name && !isEditing ? (
           <>
             <span className="pe-2">{board?.name}</span>
-            <Button onClick={() => setIsEditing(true)}>
+            <Button
+              onClick={() => setIsEditing(true)}
+              className="bg-[#3018B9] hover:bg-[#180c5f]"
+            >
               <FaPencilAlt />
             </Button>
           </>
@@ -105,6 +108,7 @@ function NameAndCopy({ boardId }: { boardId: string }) {
       <div className="place-self-center">
         <Button
           onClick={() => navigator?.clipboard?.writeText(window.location.href)}
+          className="bg-[#3018B9] hover:bg-[#180c5f]"
         >
           <span className="px-2">Compartilhe o quadro</span> <FaRegCopy />
         </Button>
@@ -130,11 +134,14 @@ function EditarNomeQuadro({
 
   return (
     <div className="flex w-full">
-      <Button onClick={() => setIsEditing(false)}>
+      <Button
+        onClick={() => setIsEditing(false)}
+        className="bg-[#3018B9] hover:bg-[#180c5f]"
+      >
         <FaArrowLeft />
       </Button>
       <Input
-        className="text-white placeholder:text-white/70"
+        className="mx-2 text-white placeholder:text-white/70"
         placeholder="Dê um nome legal para o quadro :)"
         type="text"
         name="name"
@@ -151,6 +158,7 @@ function EditarNomeQuadro({
           mutate({ name, boardId });
           setIsEditing(false);
         }}
+        className="bg-[#3018B9] hover:bg-[#180c5f]"
       >
         <FaRegSave />
       </Button>
