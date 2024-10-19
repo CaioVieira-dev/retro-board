@@ -7,6 +7,7 @@ import {
   Sheet,
   SheetClose,
   SheetContent,
+  SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetTitle,
@@ -62,6 +63,9 @@ export function Navbar({ session }: { session: Session | null }) {
             Logado como {session?.user?.name ?? "SN"}
           </SheetTitle>
         </SheetHeader>
+        <SheetDescription className="flex flex-col gap-4 pt-4 text-white">
+          <MyBoards />
+        </SheetDescription>
 
         <SheetFooter className="pt-8">
           <SheetClose asChild>
@@ -78,6 +82,25 @@ export function Navbar({ session }: { session: Session | null }) {
   );
 }
 
+function MyBoards() {
+  const [allMyBoards] = api.board.getAllMyBoards.useSuspenseQuery();
+
+  return (
+    <>
+      {allMyBoards.map(({ id, name }, index) => (
+        <SheetClose asChild key={id}>
+          <Link
+            href={`/boards/${id}`}
+            className="w-full rounded bg-white/10 px-10 py-3 text-center font-semibold no-underline transition hover:bg-white/20"
+          >
+            {name ? name : `Quadro sem nome ${index + 1}`}
+          </Link>
+        </SheetClose>
+      ))}
+    </>
+  );
+}
+
 function NameAndCopy({ boardId }: { boardId: string }) {
   const [isEditing, setIsEditing] = useState(false);
   const [boardQuery] = api.board.getBoard.useSuspenseQuery({ boardId });
@@ -85,8 +108,6 @@ function NameAndCopy({ boardId }: { boardId: string }) {
   const board = useMemo(() => {
     return Object.values(boardQuery)?.[0];
   }, [boardQuery]);
-
-  console.log("board: ", boardQuery);
 
   return (
     <>

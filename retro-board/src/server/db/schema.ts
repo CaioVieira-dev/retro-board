@@ -56,6 +56,8 @@ export const users = createTable("user", {
 
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
+  cards: many(cards),
+  usersToBoards: many(usersToBoards),
 }));
 
 export const accounts = createTable(
@@ -159,10 +161,12 @@ export const cards = createTable("cards", {
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
   boardColumnId: varchar("boardId", { length: 255 }).notNull(),
+  userId: varchar("boardId", { length: 255 }).notNull(),
 });
 
 export const boardsRelations = relations(boards, ({ many }) => ({
   board_columns: many(boardColumns),
+  usersToBoards: many(usersToBoards),
 }));
 
 export const boardColumnsRelations = relations(
@@ -179,5 +183,33 @@ export const cardsRelations = relations(cards, ({ one }) => ({
   boardColumn: one(boardColumns, {
     fields: [cards.boardColumnId],
     references: [boardColumns.id],
+  }),
+  createdBy: one(users, {
+    fields: [cards.userId],
+    references: [users.id],
+  }),
+}));
+
+export const usersToBoards = createTable(
+  "users_to_boards",
+  {
+    userId: varchar("user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id),
+    boardId: varchar("board_id", { length: 255 })
+      .notNull()
+      .references(() => boards.id),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.userId, t.boardId] }) }),
+);
+
+export const usersToBoardsRelations = relations(usersToBoards, ({ one }) => ({
+  user: one(users, {
+    fields: [usersToBoards.userId],
+    references: [users.id],
+  }),
+  board: one(boards, {
+    fields: [usersToBoards.boardId],
+    references: [boards.id],
   }),
 }));

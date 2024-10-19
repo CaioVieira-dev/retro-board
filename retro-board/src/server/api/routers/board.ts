@@ -7,12 +7,12 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
-import { boards, boardColumns, cards } from "~/server/db/schema";
+import { boards, boardColumns, cards, usersToBoards } from "~/server/db/schema";
 
 const DEFAULT_BOARD_COLUMN_NAMES = ["Dúvidas", "Parar", "Continuar"];
 
 export const boardRouter = createTRPCRouter({
-  addMessage: publicProcedure
+  addMessage: protectedProcedure
     .input(
       z.object({
         message: z.string(),
@@ -34,6 +34,7 @@ export const boardRouter = createTRPCRouter({
       await ctx.db.insert(cards).values({
         boardColumnId: column,
         content: message,
+        userId: ctx.session.user.id,
       });
     }),
 
@@ -111,6 +112,15 @@ export const boardRouter = createTRPCRouter({
 
       return result;
     }),
+  getAllMyBoards: protectedProcedure.query(async ({ ctx }) => {
+    const rows = await ctx.db
+      .select()
+      .from(usersToBoards)
+      .where(eq(usersToBoards.userId, ctx.session.user.id))
+      .innerJoin(boards, eq(usersToBoards.boardId, boards.id));
+
+    return rows.map((row) => row.boards);
+  }),
 
   updateBoardName: publicProcedure
     .input(
@@ -163,6 +173,11 @@ export const boardRouter = createTRPCRouter({
           name: colName,
         })),
       );
+
+      await ctx.db.insert(usersToBoards).values({
+        boardId: board.id,
+        userId: ctx.session.user.id,
+      });
 
       return board.id;
     }),
