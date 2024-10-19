@@ -161,7 +161,7 @@ export const cards = createTable("cards", {
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
   boardColumnId: varchar("boardId", { length: 255 }).notNull(),
-  userId: varchar("boardId", { length: 255 }).notNull(),
+  userId: varchar("userId", { length: 255 }).notNull(),
 });
 
 export const boardsRelations = relations(boards, ({ many }) => ({

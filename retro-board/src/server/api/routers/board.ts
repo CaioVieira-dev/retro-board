@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { eq, type InferSelectModel } from "drizzle-orm";
+import { and, eq, type InferSelectModel } from "drizzle-orm";
 import { z } from "zod";
 
 import {
@@ -12,6 +12,9 @@ import { boards, boardColumns, cards, usersToBoards } from "~/server/db/schema";
 const DEFAULT_BOARD_COLUMN_NAMES = ["Dúvidas", "Parar", "Continuar"];
 
 export const boardRouter = createTRPCRouter({
+  myId: protectedProcedure.query(({ ctx }) => {
+    return ctx.session.user.id;
+  }),
   addMessage: protectedProcedure
     .input(
       z.object({
@@ -36,6 +39,34 @@ export const boardRouter = createTRPCRouter({
         content: message,
         userId: ctx.session.user.id,
       });
+    }),
+  editMessage: protectedProcedure
+    .input(
+      z.object({
+        messageId: z.string(),
+        message: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { message, messageId } = input;
+
+      if (!messageId) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Insuficient argumens. Are you sure the request is ok?",
+          // optional: pass the original error to retain stack trace
+          // cause: theError,
+        });
+      }
+
+      await ctx.db
+        .update(cards)
+        .set({
+          content: message,
+        })
+        .where(
+          and(eq(cards.id, messageId), eq(cards.userId, ctx.session.user.id)),
+        );
     }),
 
   removeMessage: publicProcedure
