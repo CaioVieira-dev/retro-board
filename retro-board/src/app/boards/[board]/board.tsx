@@ -20,7 +20,7 @@ export default function Board({ board }: { board: string }) {
             <Column title={name} key={id} columnId={id}>
               <>
                 {cards.map(({ content, id, userId }) => (
-                  <Card
+                  <CustomCard
                     message={content}
                     cardId={id}
                     key={id}
@@ -80,7 +80,7 @@ function Column({
   );
 }
 
-function Card({
+function CustomCard({
   message,
   cardId,
   createdBy,
@@ -120,56 +120,61 @@ function Card({
 
   if (canEdit && isEditing) {
     return (
-      <div className="flex items-start justify-between bg-[#AAA3D4] px-4 py-2">
-        <Button
-          className="bg-[#3018B9] px-3 transition-colors hover:bg-[#180c5f] hover:text-white"
-          variant="secondary"
-          onClick={() => {
-            setIsEditing(false);
-            setEditedMessage(message);
-          }}
-        >
-          <FaArrowLeft className="text-white" />
-        </Button>
+      <div className="flex flex-col gap-4 bg-[#AAA3D4] px-2 py-2">
+        <div className="flex justify-between">
+          <Button
+            className="bg-[#3018B9] px-3 transition-colors hover:bg-[#180c5f] hover:text-white"
+            variant="secondary"
+            onClick={() => {
+              setIsEditing(false);
+              setEditedMessage(message);
+            }}
+          >
+            <FaArrowLeft className="text-white" />
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => editMessage()}
+            className="bg-[#3018B9] px-3 hover:bg-[#180c5f]"
+            size="icon"
+          >
+            <FaRegSave className="text-white" />
+          </Button>
+        </div>
         <textarea
           name="editedMessage"
           id="editedMessage"
           value={editedMessage}
           onChange={(e) => setEditedMessage(e.target.value)}
-          className="mx-2 w-full rounded border border-[#3018B9] bg-[#AAA3D4] px-4 py-2 outline-[#3018B9]"
+          className="w-full rounded border border-[#3018B9] bg-[#AAA3D4] px-4 py-2 outline-[#3018B9]"
         />
-        <Button
-          variant="ghost"
-          onClick={() => editMessage()}
-          className="bg-[#3018B9] hover:bg-[#180c5f]"
-        >
-          <FaRegSave className="text-white" />
-        </Button>
       </div>
     );
   }
 
   return (
-    <div className="flex items-start justify-between bg-[#AAA3D4] px-4 py-2">
-      <span className="py-2">{message}</span>
-      <div className="flex">
+    <div className="flex flex-col bg-[#AAA3D4] px-2 py-2">
+      <div className="flex justify-between">
         {canEdit && (
           <Button
             variant="ghost"
             onClick={() => setIsEditing(true)}
-            className="bg-transparent px-3 hover:bg-[#180c5f]"
+            className="bg-transparent hover:bg-[#180c5f]"
+            size="icon"
           >
             <FaPencilAlt className="text-white" />
           </Button>
         )}
         <Button
-          className="bg-transparent px-3 text-[#AE214E] transition-colors hover:text-white"
+          className="bg-transparent text-[#AE214E] transition-colors hover:text-white"
           variant="destructive"
           onClick={() => removeMessage()}
+          size="icon"
         >
           <MdOutlineDelete />
         </Button>
       </div>
+      <span className="px-2 py-2">{message}</span>
     </div>
   );
 }

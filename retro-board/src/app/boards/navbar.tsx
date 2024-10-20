@@ -118,6 +118,7 @@ function NameAndCopy({ boardId }: { boardId: string }) {
             <Button
               onClick={() => setIsEditing(true)}
               className="bg-[#3018B9] hover:bg-[#180c5f]"
+              size="icon"
             >
               <FaPencilAlt />
             </Button>
@@ -157,7 +158,8 @@ function EditarNomeQuadro({
     <div className="flex w-full">
       <Button
         onClick={() => setIsEditing(false)}
-        className="bg-[#3018B9] hover:bg-[#180c5f]"
+        className="bg-[#3018B9] px-3 hover:bg-[#180c5f]"
+        size="icon"
       >
         <FaArrowLeft />
       </Button>
@@ -179,7 +181,8 @@ function EditarNomeQuadro({
           mutate({ name, boardId });
           setIsEditing(false);
         }}
-        className="bg-[#3018B9] hover:bg-[#180c5f]"
+        className="bg-[#3018B9] px-3 hover:bg-[#180c5f]"
+        size="icon"
       >
         <FaRegSave />
       </Button>
