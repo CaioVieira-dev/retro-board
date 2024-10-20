@@ -90,6 +90,33 @@ export const boardRouter = createTRPCRouter({
       await ctx.db.delete(cards).where(eq(cards.id, card));
     }),
 
+  editColumnTitle: protectedProcedure
+    .input(
+      z.object({
+        title: z.string(),
+        columnId: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { columnId, title } = input;
+
+      if (!columnId || !title) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Insuficient argumens. Are you sure the request is ok?",
+          // optional: pass the original error to retain stack trace
+          // cause: theError,
+        });
+      }
+
+      await ctx.db
+        .update(boardColumns)
+        .set({
+          name: title,
+        })
+        .where(eq(boardColumns.id, columnId));
+    }),
+
   getBoard: publicProcedure
     .input(z.object({ boardId: z.string() }))
     .query(async ({ input, ctx }) => {

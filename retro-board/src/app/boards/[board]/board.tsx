@@ -5,6 +5,7 @@ import { Button } from "~/components/ui/button";
 import { api } from "~/trpc/react";
 import { MdOutlineDelete } from "react-icons/md";
 import { FaArrowLeft, FaPencilAlt, FaRegSave } from "react-icons/fa";
+import { Input } from "~/components/ui/input";
 
 export default function Board({ board }: { board: string }) {
   const [boardFromDb] = api.board.getBoard.useSuspenseQuery({
@@ -20,7 +21,7 @@ export default function Board({ board }: { board: string }) {
             <Column title={name} key={id} columnId={id}>
               <>
                 {cards.map(({ content, id, userId }) => (
-                  <CustomCard
+                  <Card
                     message={content}
                     cardId={id}
                     key={id}
@@ -46,21 +47,72 @@ function Column({
   children: React.ReactNode;
 }) {
   const [message, setMessage] = useState("");
+  const [editedTitle, setEditedTitle] = useState(title);
+  const [isEditing, setIsEditing] = useState(false);
   const utils = api.useUtils();
-  const { mutate } = api.board.addMessage.useMutation({
+  const { mutate: createMessage } = api.board.addMessage.useMutation({
     async onSuccess() {
+      await utils.invalidate();
+    },
+  });
+  const { mutate: editColumnTitle } = api.board.editColumnTitle.useMutation({
+    async onSuccess() {
+      setIsEditing(false);
       await utils.invalidate();
     },
   });
 
   const addMessage = useCallback(() => {
-    mutate({ column: columnId, message });
+    createMessage({ column: columnId, message });
     setMessage("");
-  }, [columnId, message, mutate]);
+  }, [columnId, message, createMessage]);
+  const editTitle = useCallback(() => {
+    editColumnTitle({ columnId, title: editedTitle });
+  }, [columnId, editColumnTitle, editedTitle]);
 
   return (
     <div className="flex w-2/6 min-w-48 flex-col gap-4 rounded bg-[#7139DA] px-2 py-4">
-      <h2 className="border-b-4 border-b-black/40 text-2xl">{title}</h2>
+      <div className="flex items-center justify-between border-b-4 border-b-black/40 pb-2">
+        {isEditing ? (
+          <>
+            <Button
+              className="bg-[#3018B9] px-3 transition-colors hover:bg-[#180c5f] hover:text-white"
+              variant="secondary"
+              onClick={() => {
+                setIsEditing(false);
+                setEditedTitle(title);
+              }}
+            >
+              <FaArrowLeft className="text-white" />
+            </Button>
+            <Input
+              value={editedTitle}
+              onChange={(e) => setEditedTitle(e.target.value)}
+              className="mx-2 w-full"
+            />
+            <Button
+              variant="ghost"
+              onClick={() => editTitle()}
+              className="bg-[#3018B9] px-3 hover:bg-[#180c5f]"
+              size="icon"
+            >
+              <FaRegSave className="text-white" />
+            </Button>
+          </>
+        ) : (
+          <>
+            <h2 className="text-2xl">{title}</h2>
+            <Button
+              variant="ghost"
+              className="bg-[#3018B9] px-3 hover:bg-[#180c5f]"
+              size="icon"
+              onClick={() => setIsEditing(true)}
+            >
+              <FaPencilAlt className="text-white" />
+            </Button>
+          </>
+        )}
+      </div>
       <textarea
         name="message"
         id="message"
@@ -80,7 +132,7 @@ function Column({
   );
 }
 
-function CustomCard({
+function Card({
   message,
   cardId,
   createdBy,
