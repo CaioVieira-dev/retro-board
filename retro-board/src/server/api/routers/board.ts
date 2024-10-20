@@ -203,16 +203,12 @@ export const boardRouter = createTRPCRouter({
     }),
 
   createBoard: protectedProcedure
-    .input(z.object({ name: z.string().optional() }))
+    .input(z.object({ name: z.string(), columns: z.array(z.string()) }))
     .mutation(async ({ ctx, input }) => {
-      const { name } = input;
-      const newBoard: { name?: string } = {};
-      if (name) {
-        newBoard.name = name;
-      }
+      const { name, columns } = input;
       const [board] = await ctx.db
         .insert(boards)
-        .values(newBoard)
+        .values({ name })
         .returning({ id: boards.id });
 
       if (!board) {
@@ -226,10 +222,12 @@ export const boardRouter = createTRPCRouter({
       }
 
       await ctx.db.insert(boardColumns).values(
-        DEFAULT_BOARD_COLUMN_NAMES.map((colName) => ({
-          boardId: board.id,
-          name: colName,
-        })),
+        (columns.length > 0 ? columns : DEFAULT_BOARD_COLUMN_NAMES).map(
+          (colName) => ({
+            boardId: board.id,
+            name: colName,
+          }),
+        ),
       );
 
       await ctx.db.insert(usersToBoards).values({
