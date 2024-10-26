@@ -71,7 +71,7 @@ export function Navbar({ session }: { session: Session | null }) {
           <SheetClose asChild>
             <Link
               href={session ? "/api/auth/signout" : "/api/auth/signin"}
-              className="w-full rounded bg-white/10 px-10 py-3 text-center font-semibold no-underline transition hover:bg-white/20"
+              className="bg-btnPrimary hover:bg-btnPrimaryHover w-full rounded px-10 py-3 text-center font-semibold no-underline transition"
             >
               {session ? "Sign out" : "Sign in"}
             </Link>
@@ -91,7 +91,7 @@ function MyBoards() {
         <SheetClose asChild key={id}>
           <Link
             href={`/boards/${id}`}
-            className="w-full rounded bg-white/10 px-10 py-3 text-center font-semibold no-underline transition hover:bg-white/20"
+            className="bg-btnPrimary hover:bg-btnPrimaryHover w-full rounded px-10 py-3 text-center font-semibold no-underline transition"
           >
             {name ? name : `Quadro sem nome ${index + 1}`}
           </Link>
@@ -115,11 +115,7 @@ function NameAndCopy({ boardId }: { boardId: string }) {
         {board?.name && !isEditing ? (
           <>
             <span className="pe-2">{board?.name}</span>
-            <Button
-              onClick={() => setIsEditing(true)}
-              className="bg-[#3018B9] hover:bg-[#180c5f]"
-              size="icon"
-            >
+            <Button onClick={() => setIsEditing(true)} size="icon">
               <FaPencilAlt />
             </Button>
           </>
@@ -130,7 +126,6 @@ function NameAndCopy({ boardId }: { boardId: string }) {
       <div className="place-self-center">
         <Button
           onClick={() => navigator?.clipboard?.writeText(window.location.href)}
-          className="bg-[#3018B9] hover:bg-[#180c5f]"
         >
           <span className="px-2">Compartilhe o quadro</span> <FaRegCopy />
         </Button>
@@ -156,11 +151,7 @@ function EditarNomeQuadro({
 
   return (
     <div className="flex w-full">
-      <Button
-        onClick={() => setIsEditing(false)}
-        className="bg-[#3018B9] px-3 hover:bg-[#180c5f]"
-        size="icon"
-      >
+      <Button onClick={() => setIsEditing(false)} size="icon">
         <FaArrowLeft />
       </Button>
       <Input
@@ -181,7 +172,6 @@ function EditarNomeQuadro({
           mutate({ name, boardId });
           setIsEditing(false);
         }}
-        className="bg-[#3018B9] px-3 hover:bg-[#180c5f]"
         size="icon"
       >
         <FaRegSave />
